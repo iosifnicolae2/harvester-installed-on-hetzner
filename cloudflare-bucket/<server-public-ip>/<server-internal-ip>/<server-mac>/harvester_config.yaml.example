@@ -1,0 +1,205 @@
+"install":
+  "data_disk": "/dev/nvme2n1"
+  "debug": true
+  "device": "/dev/nvme1n1"
+  "force_efi": false
+  "force_mbr": false
+  "iso_url": "https://releases.rancher.com/harvester/v1.1.2/harvester-v1.1.2-amd64.iso"
+  "management_interface":
+    "bond_options":
+      "miimon": 100
+      "mode": "active-backup"
+    "gateway": "10.1.1.1"
+    "interfaces":
+    - "name": "enp7s0"
+    "ip": "10.1.1.YOUR_SERVER_IP_INDEX"
+    "method": "static"
+    "mtu": 1400
+    "subnet_mask": "255.255.255.0"
+    "vlan_id": 4000
+  "mode": "create"
+  "no_format": false
+  "poweroff": false
+  "silent": true
+  "tty": "ttyS0,115200n8"
+  "vip": "10.1.1.YOUR_SERVER_IP_INDEX"
+  "vip_hw_addr": ""
+  "vip_mode": "static"
+"os":
+  "dns_nameservers":
+  - "10.1.0.2"
+  - "1.1.1.1"
+  "environment": {}
+  "hostname": "dedicated-server-1"
+  "labels": {}
+  "modules":
+  - "kvm"
+  - "nvme"
+  "ntp_servers":
+  - "0.suse.pool.ntp.org"
+  - "1.suse.pool.ntp.org"
+  "password": "BCRYPT_PASSWORD_HERE"
+  "ssh_authorized_keys":
+  - |
+    YOUR_SSH_PUBLIC_KEY_HERE
+  "sysctls":
+    "kernel.kptr_restrict": "1"
+    "kernel.printk": "4 4 1 7"
+  "write_files":
+  - "content": |
+      "name": "Configure harvester - update"
+      "stages":
+        "boot":
+        - "commands":
+          - "wicked ifreload all"
+          "files":
+          - "content": |
+              STARTMODE='onboot'
+              BONDING_MASTER='yes'
+              BOOTPROTO='none'
+              POST_UP_SCRIPT="wicked:setup_bond.sh"
+
+
+              BONDING_SLAVE_0='enp7s0'
+
+              BONDING_MODULE_OPTS='miimon=100 mode=active-backup '
+
+              DHCLIENT_SET_DEFAULT_ROUTE='no'
+              MTU=1400
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-mgmt-bo"
+            "permissions": 384
+          - "content": |
+              STARTMODE='hotplug'
+              BOOTPROTO='none'
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-enp7s0"
+            "permissions": 384
+          - "content": |
+              STARTMODE='onboot'
+              BOOTPROTO='dhcp'
+              BRIDGE='yes'
+              BRIDGE_STP='off'
+              BRIDGE_FORWARDDELAY='0'
+              BRIDGE_PORTS='mgmt-bo'
+              PRE_UP_SCRIPT="wicked:setup_bridge.sh"
+              POST_UP_SCRIPT="wicked:setup_bridge.sh"
+
+
+              DHCLIENT_SET_DEFAULT_ROUTE='yes'
+              MTU=1400
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-mgmt-br"
+            "permissions": 384
+          - "content": |
+              STARTMODE='onboot'
+              ETHERDEVICE='mgmt-br'
+              VLAN_PROTOCOL='ieee802-1Q'
+              VLAN_ID=4000
+
+              BOOTPROTO='static'
+
+              IPADDR=10.1.1.YOUR_SERVER_IP_INDEX
+              NETMASK=255.255.255.0
+
+
+              DHCLIENT_SET_DEFAULT_ROUTE='no'
+
+              MTU=1400
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-mgmt-br.4000"
+            "permissions": 384
+          - "content": "10.1.0.0/16 10.1.1.1"
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifroute-mgmt-br.4000"
+            "permissions": 384
+          - "content": |
+              node-ip: 10.1.1.YOUR_SERVER_IP_INDEX
+              node-external-ip: YOUR_SERVER_EXTERNAL_IP
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/rancher/rke2/config.yaml.d/90-harvester-network.yaml"
+            "permissions": 384
+          - "content": |
+              STARTMODE='onboot'
+              ETHERDEVICE='mgmt-br'
+              VLAN_PROTOCOL='ieee802-1Q'
+              VLAN_ID=4001
+
+              BOOTPROTO='static'
+
+              IPADDR=10.2.1.YOUR_SERVER_IP_INDEX
+              NETMASK=255.255.255.0
+
+
+              DHCLIENT_SET_DEFAULT_ROUTE='no'
+
+              MTU=1400
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-mgmt-br.4001"
+            "permissions": 384
+          - "content": |
+              STARTMODE='onboot'
+              ETHERDEVICE='mgmt-br'
+              VLAN_PROTOCOL='ieee802-1Q'
+              VLAN_ID=4002
+
+              BOOTPROTO='static'
+
+              IPADDR=10.3.1.YOUR_SERVER_IP_INDEX
+              NETMASK=255.255.255.0
+
+
+              DHCLIENT_SET_DEFAULT_ROUTE='no'
+
+              MTU=1400
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifcfg-mgmt-br.4002"
+            "permissions": 384
+          - "content": "10.2.0.0/16 10.2.1.1"
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifroute-mgmt-br.4001"
+            "permissions": 384
+          - "content": "10.3.0.0/16 10.3.1.1"
+            "encoding": ""
+            "group": 0
+            "owner": 0
+            "ownerstring": ""
+            "path": "/etc/sysconfig/network/ifroute-mgmt-br.4002"
+            "permissions": 384
+          "name": "Configure harvester update - update"
+    "encoding": ""
+    "owner": "root"
+    "path": "/oem/99_harvester.yaml"
+    "permissions": "666"
+"scheme_version": 1
+"server_url": ""
+"system_settings":
+  "auto-disk-provision-paths": ""
+"token": "YOUR_HARVESTER_TOKEN_HERE"
